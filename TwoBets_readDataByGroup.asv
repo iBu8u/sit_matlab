@@ -97,7 +97,7 @@ for k = 1:5 % 1:5 client
         data(k).choice(j,47:50) = pref;
         data(k).choice(j,51:54) = wght;
         
-        %keyboard
+        keyboard
         
         % weighted otherValue based on others' (2nd) choice and reward
         % note that only the 2nd choice leat to reward
@@ -108,7 +108,9 @@ for k = 1:5 % 1:5 client
         tmpv(c2)   = sum(wght .* (othc2==c2) .* othrew);
         tmpv(3-c2) = sum(wght .* (othc2~=c2) .* othrew);
         data(k).choice(j,59:60) = tmpv;
-                
+        
+        
+        
     end  % for 1:nTrials
     
 end

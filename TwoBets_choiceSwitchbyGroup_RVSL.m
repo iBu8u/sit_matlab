@@ -212,7 +212,7 @@ for k = 1:5 % 1:5 client
         % ----------------------------------------------------------------------------------
         
         % ----------------------------------------------------------------------------------
-        % switch results compared to the others, considerting the pref (36-39)
+        % switch results compared to the others, considerting the pref (35-38)
         % 0 if no switch
         % 1 if same as the prefered person after switch
         % -1 if switch away

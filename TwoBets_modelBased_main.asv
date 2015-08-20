@@ -51,7 +51,8 @@ for s = 1:length(data)
 end
 
 save('/projects/socialInflu/sit_stan/_data/data3_129.mat', 'data3')
-% save('data3_129.mat', 'data3')
+
+%save('data3_129.mat', 'data3')
 
 %% start model fitting
 load('data.mat')
