@@ -85,16 +85,18 @@ for k = 1:5 % 1:5 client
         % manipulate and recode the prereference result ---------------------------------------
         % choice   = data(k).choice(j, 6:9);     % choices of the other 4
         tempPref = data(k).choice(j, 33:34);   % 1st and 2nd preference of the current subject
-        if tempPref(2) == tempPref(1)
-            rndPrefIndx = datasample([1 2 3], 1);
-            oth3        = setdiff(1:4, tempPref(1)); % other3
-            tempPref(2) = oth3(rndPrefIndx);
+        if tempPref(2) ~= tempPref(1)
+            remain     = setdiff(1:4, tempPref);     % the remaining subject
+            pref       = [tempPref, remain];
+            wght       = zeros(1,4);
+            wght(pref) = [.75 .5 .25 .25];
+        elseif tempPref(2) == tempPref(1)
+            remain     = setdiff(1:4, tempPref(1));  % the remaining subject
+            pref       = [tempPref(1), remain];
+            wght       = zeros(1,4);
+            wght(pref) = [1 .25 .25 .25];
         end
-        remain     = setdiff(1:4, tempPref);     % the remaining subject
-        pref       = [tempPref, remain];
-        wght       = zeros(1,4);
-        wght(pref) = [.75 .5 .25 .25];
-                
+                        
         % orderChoice = choice( prefVec );  % odered choices by the preference
         data(k).choice(j,47:50) = pref;
         data(k).choice(j,51:54) = wght;
