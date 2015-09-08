@@ -35,6 +35,8 @@ rawData = rawData.trial;
 % moving-window choice frequency as the same as my 2nd choice (61-64)
 % moving-window choice frequency as oppusite to my 2nd choice (65-68)
 % 0/1 results, checking choice1 == otherChoice1 (69-72)
+% choice preference (prob) from beta_cdf, with my 2nd choice (73-76)
+% choice preference (prob) from beta_cdf, against my 2nd choice (77-80)
 
 
 % data(1) refers the 1st client, data(2) refers the 2nd client, and so on
@@ -58,7 +60,7 @@ for k = 1:5 % 1:5 client
             rawData(j).winProb1, rawData(j).decision1.israndom(k), NaN,...
             nan(1,4), nan(1,4), nan(1,4), ...
             rawData(j).decision2.choice(setdiff([1 2 3 4 5], k)), ...
-            nan(1,2), nan(1,8), nan(1,4)];
+            nan(1,2), nan(1,8), nan(1,4), nan(1,8)];
         
         if j > 1 && rawData(j).winProb1 ~= rawData(j-1).winProb1
             data(k).choice(j,2) = 1; % reverse now
@@ -115,18 +117,16 @@ for k = 1:5 % 1:5 client
         data(k).choice(j,59:60) = tmpv;
                
     end  % for 1:nTrials
-    
-    % keyboard
-    
+   
     % build choice frequency over the past [window] trials, later for modeling -------------------
-    int_window = 5;
+    int_window = 4;
     mc2 = data(k).choice(:,10);     % my C2
     oc2 = data(k).choice(:,55:58);  % other C2
     sum_choose_c2_y = zeros(100,4); % how many times they choose the same option as I do on the 2nd choice 
     sum_choose_c2_n = zeros(100,4); % how many times they choose the opposit option as I do on the 2nd choice 
         
     for t = 1:length(rawData) % trial loop
-        if t <= 5
+        if t <= 4
            sum_choose_c2_y(t,:) = sum( oc2(1:t,:)==mc2(t),1 );
            sum_choose_c2_n(t,:) = t - sum_choose_c2_y(t,:);
         else
@@ -137,9 +137,28 @@ for k = 1:5 % 1:5 client
     data(k).choice(:,61:64) = sum_choose_c2_y;
     data(k).choice(:,65:68) = sum_choose_c2_n;
     
+%     keyboard
+    
+    % directly get choice preference from beta_cdf, withouting evidence parameter
+    prob_sC2 = zeros(100,4);
+    prob_oC2 = zeros(100,4);
+    
+    for t = 1:length(rawData) % trial loop
+       for o = 1:4
+           prob_sC2(t,o) = betacdf(0.5, sum_choose_c2_n(t,o) + 1, sum_choose_c2_y(t,o) + 1 );
+           prob_oC2(t,o) = 1 - prob_sC2(t,o);
+       end        
+    end
+    
+    data(k).choice(:,73:76) = prob_sC2;
+    data(k).choice(:,77:80) = prob_oC2;
+    
+    
     % 0/1 results for checking choice1 == otherChoice1, for RLcumrew -------------------------------
     mc1 = data(k).choice(:,3);     % my C1
     oc1 = data(k).choice(:,6:9);  % other C1
     data(k).choice(:,69:72) = (repmat(mc1,1,4) == oc1);
+    
+    keyboard
 end
 
