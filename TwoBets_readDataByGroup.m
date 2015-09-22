@@ -106,7 +106,7 @@ for k = 1:5 % 1:5 client
         data(k).choice(j,47:50) = pref;
         data(k).choice(j,51:54) = wght;
         
-        %keyboard
+%         keyboard
         
         % weighted otherValue based on others' (2nd) choice and reward
         % note that only the 2nd choice leat to reward
