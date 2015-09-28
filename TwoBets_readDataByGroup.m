@@ -41,6 +41,8 @@ rawData = rawData.trial;
 % weighted choice preference (prob) from beta_cdf, against my 2nd choice (85-88)
 % 0/1 results, checking choice2 == otherChoice2 (89-92)
 % other with/against's proportion times indvudual weights (93-94)
+% preference weights, sum up to one (95-98)
+% other with/against's proportion times indvudual weights_one (99-100)
 
 
 % data(1) refers the 1st client, data(2) refers the 2nd client, and so on
@@ -65,7 +67,7 @@ for k = 1:5 % 1:5 client
             nan(1,4), nan(1,4), nan(1,4), ...
             rawData(j).decision2.choice(setdiff([1 2 3 4 5], k)), ...
             nan(1,2), nan(1,8), nan(1,4), nan(1,8), nan(1,8), nan(1,4), ...
-            nan(1,2)];
+            nan(1,2), nan(1,4), nan(1,2)];
         
         if j > 1 && rawData(j).winProb1 ~= rawData(j-1).winProb1
             data(k).choice(j,2) = 1; % reverse now
@@ -98,16 +100,23 @@ for k = 1:5 % 1:5 client
             pref       = [tempPref, remain];
             wght       = zeros(1,4);
             wght(pref) = [.75 .5 .25 .25];
+            
+            wght_one       = zeros(1,4);
+            wght_one(pref) = [3 2 1 1] / 7;
         elseif tempPref(2) == tempPref(1)
             remain     = setdiff(1:4, tempPref(1));  % the remaining subject
             pref       = [tempPref(1), remain];
             wght       = zeros(1,4);
             wght(pref) = [1 .25 .25 .25];
+            
+            wght_one       = zeros(1,4);
+            wght_one(pref) = [4 1 1 1] / 7;
         end
                         
         % orderChoice = choice( prefVec );  % odered choices by the preference
         data(k).choice(j,47:50) = pref;
         data(k).choice(j,51:54) = wght;
+        data(k).choice(j,95:98) = wght_one;        
         
 %         keyboard
         
@@ -169,8 +178,11 @@ for k = 1:5 % 1:5 client
     
     % weighted choice preference (prob) from beta_cdf, withouting evidence parameter ---------------
     wght4 = data(k).choice(:,51:54);
-    data(k).choice(:,81:84) = prob_sC2 .* wght4;
-    data(k).choice(:,85:88) = prob_oC2 .* wght4;
+    wProb_sC2 = prob_sC2 .* wght4;
+    wProb_oC2 = prob_oC2 .* wght4;
+    data(k).choice(:,81:84) = wProb_sC2;
+    data(k).choice(:,85:88) = wProb_oC2;    
+    
     
     % 0/1 results for checking choice1 == otherChoice1, for RLcumrew -------------------------------
     mc1 = data(k).choice(:,3);     % my C1
@@ -191,5 +203,19 @@ for k = 1:5 % 1:5 client
     wght_with = sum(wght_with_mat,2) ./ sum(wght4,2);
     wght_agst = sum(wght_agst_mat,2) ./ sum(wght4,2);
     data(k).choice(:,93:94) = [wght_with wght_agst];
+    
+    % weight sum up to one ---------------------------
+%     keyboard
+    
+    wght1 = data(k).choice(:,95:98);
+    wght_with_mat1 = wght1 .* otherWith1;
+    wght_agst_mat1 = wght1 .* otherAgst1;
+    wght_with1 = sum(wght_with_mat1,2) ./ sum(wght1,2);
+    wght_agst1 = sum(wght_agst_mat1,2) ./ sum(wght1,2);
+    data(k).choice(:,99:100) = [wght_with1, wght_agst1];
+    
+%     keyboard
+    
+    
  end
 
