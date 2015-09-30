@@ -35,20 +35,26 @@ rawData = rawData.trial;
 % moving-window choice frequency as the same as my 2nd choice (61-64)
 % moving-window choice frequency as oppusite to my 2nd choice (65-68)
 % 0/1 results, checking choice1 == otherChoice1 (69-72)
-% choice preference (prob) from beta_cdf, with my 2nd choice (73-76)
-% choice preference (prob) from beta_cdf, against my 2nd choice (77-80)
-% weighted choice preference (prob) from beta_cdf, with my 2nd choice (81-84)
-% weighted choice preference (prob) from beta_cdf, against my 2nd choice (85-88)
+% choice preference (prob) from beta_cdf, with my 2nd choice, prob_sC2, (73-76)
+% choice preference (prob) from beta_cdf, against my 2nd choice, prob_oC2, (77-80)
+% weighted choice preference (prob) from beta_cdf, with my 2nd choice, wProb_sC2, (81-84)
+% weighted choice preference (prob) from beta_cdf, against my 2nd choice, wProb_oC2, (85-88)
 % 0/1 results, checking choice2 == otherChoice2 (89-92)
 % other with/against's proportion times indvudual weights (93-94)
 % preference weights, sum up to one (95-98)
 % other with/against's proportion times indvudual weights_one (99-100)
-
+% prob_sC2, mediated by actual outcome (101-104)
+% prob_oC2, mediated by actual outcome (105-108)
+% wProb_sC2, mediated by actual outcome (109-112)
+% wProb_oC2, mediated by actual outcome (113-116)
 
 % data(1) refers the 1st client, data(2) refers the 2nd client, and so on
+
+nt = length(rawData);
+
 for k = 1:5 % 1:5 client
         
-    for j = 1:length(rawData)  % 1:nTrial
+    for j = 1:nt  % 1:nTrial
         
         % load data in the defind format above
         data(k).choice(j,:) = [rawData(j).optionPair, NaN, rawData(j).decision1.choice(k), ...
@@ -57,7 +63,7 @@ for k = 1:5 % 1:5 client
             mode(rawData(j).decision1.choice(setdiff([1 2 3 4 5], k))), NaN,...
             rawData(j).bet1.choice(k), rawData(j).outcome2(k), ...
             mode(rawData(j).outcome2), mode(rawData(j).decision1.choice), NaN, NaN,...
-            rawData(j).bet2.choice(k), NaN, NaN, NaN, NaN,...
+            rawData(j).bet2.choice(k), nan(1,4),...
             rawData(j).outcome2(setdiff([1 2 3 4 5], k)), rawData(j).winner,...
             rawData(j).decision1.rt(k), rawData(j).bet1.rt(k),...
             rawData(j).decision2.rt(k), rawData(j).bet2.rt(k),...
@@ -67,7 +73,7 @@ for k = 1:5 % 1:5 client
             nan(1,4), nan(1,4), nan(1,4), ...
             rawData(j).decision2.choice(setdiff([1 2 3 4 5], k)), ...
             nan(1,2), nan(1,8), nan(1,4), nan(1,8), nan(1,8), nan(1,4), ...
-            nan(1,2), nan(1,4), nan(1,2)];
+            nan(1,2), nan(1,4), nan(1,2), nan(1,8), nan(1,8)];
         
         if j > 1 && rawData(j).winProb1 ~= rawData(j-1).winProb1
             data(k).choice(j,2) = 1; % reverse now
@@ -136,16 +142,29 @@ for k = 1:5 % 1:5 client
     int_window = 5;
     mc2 = data(k).choice(:,10);     % my C2
     oc2 = data(k).choice(:,55:58);  % other C2
-    sum_choose_c2_y = zeros(100,4); % how many times they choose the same option as I do on the 2nd choice 
-    sum_choose_c2_n = zeros(100,4); % how many times they choose the opposit option as I do on the 2nd choice 
+    othRew = data(k).choice(:,24:27);
+    sum_choose_c2_y = zeros(nt,4); % how many times they choose the same option as I do on the 2nd choice 
+    sum_choose_c2_n = zeros(nt,4); % how many times they choose the opposit option as I do on the 2nd choice
+    sum_choose_c2_y_med = zeros(nt,4); % how many times they choose the same option as I do on the 2nd choice 
+    sum_choose_c2_n_med = zeros(nt,4); % how many times they choose the opposit option as I do on the 2nd choice
         
-    for t = 1:length(rawData) % trial loop
+    %keyboard
+    
+    oc2_mod = (othRew == 1)*1 .* oc2 + (othRew == -1)*1 .* (3-oc2); 
+    
+    for t = 1:nt % trial loop
         if t <= int_window
            sum_choose_c2_y(t,:) = sum( oc2(1:t,:)==mc2(t),1 );
            sum_choose_c2_n(t,:) = t - sum_choose_c2_y(t,:);
+           
+           sum_choose_c2_y_med(t,:) = sum( oc2_mod(1:t,:)==mc2(t),1 );
+           sum_choose_c2_n_med(t,:) = t - sum_choose_c2_y_med(t,:);
         else
            sum_choose_c2_y(t,:) = sum(oc2((t-int_window+1):t, :)==mc2(t),1 ) ;
            sum_choose_c2_n(t,:) = int_window - sum_choose_c2_y(t,:);
+           
+           sum_choose_c2_y_med(t,:) = sum(oc2_mod((t-int_window+1):t, :)==mc2(t),1 ) ;
+           sum_choose_c2_n_med(t,:) = int_window - sum_choose_c2_y_med(t,:);           
         end
     end    
     data(k).choice(:,61:64) = sum_choose_c2_y;
@@ -154,34 +173,38 @@ for k = 1:5 % 1:5 client
 %     keyboard
     
     % directly get choice preference (prob) from beta_cdf, withouting evidence parameter----------------
-    othRew = data(k).choice(:,24:27);
-    prob_sC2 = zeros(100,4);
-    prob_oC2 = zeros(100,4);
+    prob_sC2 = zeros(nt,4);
+    prob_oC2 = zeros(nt,4);
+    prob_sC2_med = zeros(nt,4);
+    prob_oC2_med = zeros(nt,4);
     
-    for t = 1:length(rawData) % trial loop
+    for t = 1:nt % trial loop
        for o = 1:4
            prob_sC2(t,o) = betacdf(0.5, sum_choose_c2_n(t,o) + 1, sum_choose_c2_y(t,o) + 1 );
            prob_oC2(t,o) = 1 - prob_sC2(t,o);
+           
+           prob_sC2_med(t,o) = betacdf(0.5, sum_choose_c2_n_med(t,o) + 1, sum_choose_c2_y_med(t,o) + 1 );
+           prob_oC2_med(t,o) = 1 - prob_sC2_med(t,o);
+           
        end        
     end
     
-%     prob_sC2_mod = (othRew==1).*prob_sC2 + (othRew==-1).*(1- prob_sC2);
-%     prob_oC2_mod = (othRew==1).*prob_oC2 + (othRew==-1).*(1- prob_oC2);
-    
     data(k).choice(:,73:76) = prob_sC2;
     data(k).choice(:,77:80) = prob_oC2;
-    
-%     data(k).choice(:,73:76) = prob_sC2_mod;
-%     data(k).choice(:,77:80) = prob_oC2_mod;
-    
-%     keyboard
+    data(k).choice(:,101:104) = prob_sC2_med;
+    data(k).choice(:,105:108) = prob_oC2_med;
     
     % weighted choice preference (prob) from beta_cdf, withouting evidence parameter ---------------
     wght4 = data(k).choice(:,51:54);
     wProb_sC2 = prob_sC2 .* wght4;
     wProb_oC2 = prob_oC2 .* wght4;
+    wProb_sC2_med = prob_sC2_med .* wght4;
+    wProb_oC2_med = prob_oC2_med .* wght4;
+    
     data(k).choice(:,81:84) = wProb_sC2;
-    data(k).choice(:,85:88) = wProb_oC2;    
+    data(k).choice(:,85:88) = wProb_oC2;
+    data(k).choice(:,109:112) = wProb_sC2_med;
+    data(k).choice(:,113:116) = wProb_oC2_med;
     
     
     % 0/1 results for checking choice1 == otherChoice1, for RLcumrew -------------------------------
