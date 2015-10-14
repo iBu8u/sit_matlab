@@ -1,8 +1,7 @@
 function data = TwoBets_readDataByGroup(grpID)
 %TWOBETS_READDATABYGROUP only read and format data, without any coding.
 % This is used specially for fitting the model, save several seconds.
-
-data_dir = sprintf('F:\\projects\\SocialInflu\\data_MR\\Group_%d\\', grpID);
+data_dir = sprintf('F:\\projects\\SocialInflu\\sit_modelfree_MLE\\_data\\data_MR\\Group_%d\\', grpID);
 % load the data into rawData, rawData now is a 1-by-1 struct, containing
 % the trial struct (1-by-100 struct)
 rawData = load([data_dir sprintf('Group_%d_exp.mat', grpID)]);
